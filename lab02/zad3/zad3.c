@@ -61,18 +61,6 @@ int showLocked(int fileDescriptor, short *locks) {
             }
         }
     }
-/*
-    for (byteNumber = 0; byteNumber < length; byteNumber++) {
-        if (locks[byteNumber] != F_UNLCK) {
-            printf("-> Wlasny rygiel na pozycji %d - typ: ", byteNumber);
-
-            if (locks[byteNumber] != F_RDLCK) {
-                printf("zapis+odczyt\n");
-            } else {
-                printf("odczyt\n");
-            }
-        }
-    }*/
 
     return 0;
 }
@@ -185,7 +173,9 @@ int main(int argc, char **argv) {
             scanf("%d", &byteNumber);
             scanf(" %c", &c);
             writeToFile(fileDescriptor, byteNumber, c);
-        } else if (strcmp(cmd, "exit") != 0) {
+        } else if (strcmp(cmd, "exit") == 0) {
+            return 0;
+        } else {
             printf("Wrong option. Type help to see the list of possible actions.\n");
         }
     }
