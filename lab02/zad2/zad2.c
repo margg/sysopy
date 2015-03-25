@@ -41,12 +41,15 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    printf("FileName \tSize \tLastModified \n\n");
+    printf("FileName \t\tSize \t\tLastModified \n\n");
 
-    // usingOpendir(permissionsValue, dir);
-
+#ifndef USEFTW
+    usingOpendir(permissionsValue, dir);
+#else
     ftw(dirName, printPath, 512);
+#endif
 
+    printf("\n\n");
 
     return 0;
 }
@@ -57,16 +60,10 @@ int printPath(const char *filePath, const struct stat *fileStat, int typeflag) {
     if (!filePath || !fileStat) {
         return -1;
     }
-
-    char date[10];
-
     int currentFilePermissions = fileStat->st_mode & 511;
-    if (permissionsValue == currentFilePermissions) {
-        printf("%s    \t", filePath);
-        printf("%d B \t", (int) fileStat->st_size);
 
-        strftime(date, 10, "%d-%m-%y", gmtime(&(fileStat->st_mtime)));
-        printf("%s \n", date);
+    if (S_ISREG(fileStat->st_mode) && permissionsValue == currentFilePermissions) {
+        printf("%-60s %10d B \t%s", filePath, (int) fileStat->st_size, ctime(&(fileStat->st_mtime)));
     }
 
     return 0;
@@ -76,7 +73,6 @@ int printPath(const char *filePath, const struct stat *fileStat, int typeflag) {
 void usingOpendir(int permissionsValue, DIR *dir) {
     struct dirent *dp;
     struct stat fileStat;
-    char date[10];
 
     while ((dp = readdir(dir)) != NULL) {
         if (strcmp(dp->d_name, ".") != 0 && strcmp(dp->d_name, "..") != 0) {
@@ -85,11 +81,7 @@ void usingOpendir(int permissionsValue, DIR *dir) {
 
             int currentFilePermissions = fileStat.st_mode & 511;
             if (permissionsValue == currentFilePermissions) {
-                printf("%s    \t", dp->d_name);
-                printf("%d B \t", (int) fileStat.st_size);
-
-                strftime(date, 10, "%d-%m-%y", gmtime(&(fileStat.st_mtime)));
-                printf("%s \n", date);
+                printf("%-20s %10d B \t%s", dp->d_name, (int) fileStat.st_size, ctime(&(fileStat.st_mtime)));
             }
         }
     }

@@ -24,7 +24,7 @@ int main(int argc, char **args) {
 
     char *name = "generatedFile";
     char *name2 = "generatedFile2";
-    int recordSize = 4;
+    int recordSize = 8192;
     int numOfRecords = 1000;
 
     struct tms prevTimes;
@@ -49,11 +49,13 @@ int main(int argc, char **args) {
 
     checkTimes(&prevTimes, &prevReal, &firstTimes, &firstReal);
 
+/*
     printFileContents(name, recordSize, numOfRecords);
 
     printf("\n\n\n");
 
     printFileContents(name2, recordSize, numOfRecords);
+*/
 
     return 0;
 }
