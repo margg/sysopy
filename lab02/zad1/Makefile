@@ -18,7 +18,7 @@ libtimes: tools/times.c
 zad1: zad1.c
 	$(CC) $(CFLAGS) $@.c -o $@.o -L. -lgenerator -lsorter -ltimes
 
-run: all
+run:
 	./zad1.o
 
 clean:

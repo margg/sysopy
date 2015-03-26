@@ -3,15 +3,14 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
-#include "generator.h"
 
 int showLocked(int fileDescriptor);
 
 int setLock(int fileDescriptor, short offset, short type);
 
-void readFromFile(int fd, int offset);
+void readFromFile(int fd, short offset);
 
-int writeToFile(int fd, int offset, char character);
+int writeToFile(int fd, short offset, char character);
 
 int setLock(int fileDescriptor, short offset, short type) {
     struct flock lock;
@@ -61,7 +60,7 @@ int showLocked(int fileDescriptor) {
     return 0;
 }
 
-void readFromFile(int fd, int offset) {
+void readFromFile(int fd, short offset) {
 
     if (lseek(fd, offset, SEEK_SET) == -1) {
         printf("Error while seeking the offset.\n");
@@ -77,7 +76,7 @@ void readFromFile(int fd, int offset) {
     printf("Character with offset %d:  %c\n", offset, character);
 }
 
-int writeToFile(int fd, int offset, char character) {
+int writeToFile(int fd, short offset, char character) {
 
     if (lseek(fd, offset, SEEK_SET) == -1) {
         printf("Error while seeking the offset.\n");
@@ -149,15 +148,21 @@ int main(int argc, char **argv) {
             };
 
         } else if (strcmp(cmd, "display") == 0) {
+
             showLocked(fileDescriptor);
-            printf("\nEND\n");
+            printf("END\n");
+
         } else if (strcmp(cmd, "read") == 0) {
+
             scanf("%hi", &offset);
             readFromFile(fileDescriptor, offset);
+
         } else if (strcmp(cmd, "write") == 0) {
-            scanf("%hi", &offset);
-            scanf(" %s", &character);
+
+            scanf(" %hi", &offset);
+            scanf(" %c", &character);
             writeToFile(fileDescriptor, offset, character);
+
         } else if (strcmp(cmd, "exit") != 0) {
             printf("Wrong option. Type help to see the list of possible actions.\n");
         }
