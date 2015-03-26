@@ -6,12 +6,17 @@
 #include "tools/sorter.h"
 
 
-int main(int argc, char **args) {
+int main(int argc, char **argv) {
 
     char *name = "generatedFile";
-    char *name2 = "generatedFile2";
-    int recordSize = 10;
-    int numOfRecords = 100;
+    char *copy1 = "generatedFile2";
+    int recordSize = 4096;
+    int numOfRecords = 200;
+
+    if(argc == 3) {
+        recordSize = atoi(argv[1]);
+        numOfRecords = atoi(argv[2]);
+    }
 
     struct tms prevTimes;
     clock_t prevReal;
@@ -19,11 +24,9 @@ int main(int argc, char **args) {
     clock_t firstReal;
     prevTimes.tms_stime = -1;
 
-    checkTimes(&prevTimes, &prevReal, &firstTimes, &firstReal);
     printf("Generating records file and making the copy.\n");
     generateRecordsFile(name, recordSize, numOfRecords);
-
-    copyFile(name, name2, recordSize, numOfRecords);
+    copyFile(name, copy1, recordSize, numOfRecords);
 
     checkTimes(&prevTimes, &prevReal, &firstTimes, &firstReal);
     printf("Sorting using fwrite/fread.\n");
@@ -31,17 +34,9 @@ int main(int argc, char **args) {
 
     checkTimes(&prevTimes, &prevReal, &firstTimes, &firstReal);
     printf("Sorting using write/read.\n");
-    bubbleSortNoF(name2, recordSize);
+    bubbleSortNoF(copy1, recordSize);
 
     checkTimes(&prevTimes, &prevReal, &firstTimes, &firstReal);
-
-/*
-    printFileContents(name, recordSize, numOfRecords);
-
-    printf("\n\n\n");
-
-    printFileContents(name2, recordSize, numOfRecords);
-*/
 
     return 0;
 }

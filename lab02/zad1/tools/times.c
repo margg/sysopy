@@ -17,11 +17,6 @@ void checkTimes(struct tms *prevTimes, clock_t *prevReal,
         *firstTimes = now;
         *firstReal = nowReal;
     } else {
-        printf("\n\tFrom the first check:\t\tR %.6f\tS %.6f\tU %.6f",
-                ((double) (nowReal - *(firstReal))) / CLOCKS_PER_SEC,
-                ((double) (now.tms_stime - firstTimes->tms_stime)) / CLK,
-                ((double) (now.tms_utime - firstTimes->tms_utime)) / CLK);
-
         printf("\n\tFrom the previous check:\tR %.6f\tS %.6f\tU %.6f",
                 ((double) (nowReal - *(prevReal))) / CLOCKS_PER_SEC,
                 ((double) (now.tms_stime - prevTimes->tms_stime)) / CLK,
