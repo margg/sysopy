@@ -75,9 +75,12 @@ void usingOpendir(int permissionsValue, DIR *dir) {
     struct stat fileStat;
 
     while ((dp = readdir(dir)) != NULL) {
+
+
+
         if (strcmp(dp->d_name, ".") != 0 && strcmp(dp->d_name, "..") != 0) {
 
-            stat(dp->d_name, &fileStat);
+            lstat(dp->d_name, &fileStat);
 
             int currentFilePermissions = fileStat.st_mode & 511;
             if (permissionsValue == currentFilePermissions) {

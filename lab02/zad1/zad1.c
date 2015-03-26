@@ -1,17 +1,3 @@
-/*
-* jeżeli nie podamy argumentu - ma się wyswietlić help jak maja wyglądać argumenty
-*
-* jak robimy opendir - pamiętać że pierwsze dwa pliki to . i .. - pamiętać żeby je pominąć
-*
-*
-* ryglowanie plików
-* -> obowiązujące
-* -> nieobowiązujące -  w Linuksie
-*       można ustawić w ustawieniach, albo:
-*       !!! sprawdzić stan pliku - czy jest ustawiony jakiś rygiel !
-*
-* */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/times.h>
@@ -24,8 +10,8 @@ int main(int argc, char **args) {
 
     char *name = "generatedFile";
     char *name2 = "generatedFile2";
-    int recordSize = 8192;
-    int numOfRecords = 1000;
+    int recordSize = 10;
+    int numOfRecords = 100;
 
     struct tms prevTimes;
     clock_t prevReal;

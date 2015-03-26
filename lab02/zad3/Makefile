@@ -1,16 +1,12 @@
 CC=gcc
 CFLAGS=-Wall
 
-all: libgenerator zad3
-
-libgenerator: generator.c
-	$(CC) $(CFLAGS) -c $^ -o $@.o
-	ar rcs $@.a $@.o
+all: zad3
 
 zad3: zad3.c
-	$(CC) $(CFLAGS) $@.c -o $@.o -L. -lgenerator
+	$(CC) $(CFLAGS) $@.c -o $@.o
 
-run: all
+run:
 	./zad3.o
 
 clean:

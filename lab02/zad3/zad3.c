@@ -5,137 +5,117 @@
 #include <string.h>
 #include "generator.h"
 
-int showLocked(int fileDescriptor, short *locks);
+int showLocked(int fileDescriptor);
 
-int setLock(int fileDescriptor, short byteNumber, short type, short *locks);
+int setLock(int fileDescriptor, short offset, short type);
 
-void readFromFile(int fd, int byte);
+void readFromFile(int fd, int offset);
 
-int writeToFile(int fd, int byte, char c);
+int writeToFile(int fd, int offset, char character);
 
-int setLock(int fileDescriptor, short byteNumber, short type, short *locks) {
-    struct flock *fl = (struct flock *) malloc(sizeof(struct flock));
-    fl->l_type = type;
-    fl->l_whence = SEEK_SET;
-    fl->l_start = byteNumber;
-    fl->l_len = 1;
+int setLock(int fileDescriptor, short offset, short type) {
+    struct flock lock;
 
-    if (fcntl(fileDescriptor, F_SETLK, fl) == -1) {
-        printf("Could not create the lock. (Descriptor: %d, byteNumber: %d).\n", fileDescriptor, byteNumber);
+    lock.l_type = type;
+    lock.l_whence = SEEK_SET;
+    lock.l_start = offset;
+    lock.l_len = 1;
+
+    if (fcntl(fileDescriptor, F_SETLK, &lock) == -1) {
+        printf("Could not create the lock. (Descriptor: %d, offset: %d).\n", fileDescriptor, offset);
+        return -1;
+    }
+    
+    return offset;
+}
+
+int showLocked(int fileDescriptor) {
+
+    int offset;
+    int length = (int) lseek(fileDescriptor, 0, SEEK_END);
+
+    if (length == -1) {
+        printf("Error while seeking the offset.\n");
         return -1;
     }
 
-    locks[byteNumber] = type;
-
-    if (type == F_UNLCK) {
-        printf("Unlocked %d. character.\n", byteNumber);
-    } else if (type == F_RDLCK) {
-        printf("Read lock on %d. character.\n", byteNumber);
-    } else {
-        printf("Write and read lock on %d. character.\n", byteNumber);
-    }
-
-    return 1;
-}
-
-int showLocked(int fileDescriptor, short *locks) {
-    int byteNumber;
-    int length = (int) lseek(fileDescriptor, 0, SEEK_END);
     struct flock fl;
-    fl.l_whence = SEEK_SET;
-    fl.l_len = 1;
 
-    for (byteNumber = 0; byteNumber < length; byteNumber++) {
+    for (offset = 0; offset < length; offset++) {
+        fl.l_whence = SEEK_SET;
+        fl.l_len = 1;
         fl.l_type = F_WRLCK;
-        fl.l_start = byteNumber;
+        fl.l_start = offset;
         if (fcntl(fileDescriptor, F_GETLK, &fl) == -1) {
-            printf("Error while getting the lock at position %d.\n", byteNumber);
+            printf("Error while getting the lock at position %d.\n", offset);
             exit(-2);
         }
 
-        if (fl.l_type != F_UNLCK) {
-            if (fl.l_type == F_RDLCK) {
-                printf("=> Read lock on character %d; PID: %d\n", byteNumber, fl.l_pid);
-            } else if (fl.l_type == F_WRLCK) {
-                printf("=> Write lock on character %d; PID: %d\n", byteNumber, fl.l_pid);
-            }
+        if (fl.l_type == F_RDLCK) {
+            printf("=> Read lock on character %d; PID: %d\n", offset, fl.l_pid);
+        } else if (fl.l_type == F_WRLCK) {
+            printf("=> Write lock on character %d; PID: %d\n", offset, fl.l_pid);
         }
     }
 
     return 0;
 }
 
-void readFromFile(int fd, int byte) {
-    struct flock fl;
-    fl.l_type = F_RDLCK;
-    fl.l_whence = SEEK_SET;
-    fl.l_start = byte;
-    fl.l_len = 1;
+void readFromFile(int fd, int offset) {
 
-    if (fcntl(fd, F_SETLK, &fl) == -1) {
+    if (lseek(fd, offset, SEEK_SET) == -1) {
+        printf("Error while seeking the offset.\n");
+        return;
+    }
+
+    char character;
+    if (read(fd, &character, sizeof(char)) == -1) {
         printf("Error while reading from file.\n");
         return;
     }
 
-    lseek(fd, byte, SEEK_SET);
-    char c;
-    read(fd, &c, sizeof(char));
-    fl.l_type = F_UNLCK;
-    fcntl(fd, F_SETLK, &fl);
-    printf("%c\n", c);
+    printf("Character with offset %d:  %c\n", offset, character);
 }
 
-int writeToFile(int fd, int byte, char c) {
-    struct flock fl;
-    fl.l_type = F_WRLCK;
-    fl.l_whence = SEEK_SET;
-    fl.l_start = byte;
-    fl.l_len = 1;
+int writeToFile(int fd, int offset, char character) {
 
-    if (fcntl(fd, F_SETLK, &fl) == -1) {
-        printf("Error while writing to file.\n");
+    if (lseek(fd, offset, SEEK_SET) == -1) {
+        printf("Error while seeking the offset.\n");
         return -1;
     }
 
-    lseek(fd, byte, SEEK_SET);
-    write(fd, &c, sizeof(char));
-    fl.l_type = F_UNLCK;
-    fcntl(fd, F_SETLK, &fl);
+    if (write(fd, &character, sizeof(char)) == -1) {
+        printf("Error while writing to file.\n");
+        return -1;
+    }
+    printf("Character with offset %d set to:  %c\n", offset, character);
     return 0;
 }
 
 int main(int argc, char **argv) {
     char *fileName;
-    int fileDescriptor;
 
     if (argc < 2) {
+        fileName = "genFile";
+    } else {
         fileName = argv[1];
     }
 
-
-    fileName = "genFile";
-
-    generateRecordsFile(fileName, 5, 10);
-
-    if ((fileDescriptor = open(fileName, O_RDWR)) == -1) {
+    int fileDescriptor = open(fileName, O_RDWR);
+    if (fileDescriptor == -1) {
         printf("Cannot open file %s.", fileName);
         return -2;
     }
 
-    int length = (int) lseek(fileDescriptor, 0, SEEK_END);
-    short *locks = malloc(length * sizeof(short));
-
-    short byteNumber;
-    for (byteNumber = 0; byteNumber < length; byteNumber++) {
-        locks[byteNumber] = F_UNLCK;
-    }
-
+    short offset;
     char *type = malloc(sizeof(char) * 64);
     char *cmd = (char *) malloc(sizeof(char) * 64);
-    char c;
+    char character;
+    int result;
+
     printf("Type help to see the list of possible actions.\n");
 
-    while (strcmp(cmd, "bye") != 0) {
+    while (strcmp(cmd, "exit") != 0) {
         scanf("%s", cmd);
 
         if (strcmp(cmd, "help") == 0) {
@@ -147,41 +127,43 @@ int main(int argc, char **argv) {
             printf("\twrite position char - write <char> at <position>\n");
             printf("\texit - exit program\n");
 
-//            printf("rygiel do odczytu pozwala na odczyt a zabrania zapisu\n");
-//            printf("rygiel do zapisu nie pozwala ani na odczyt ani na zapis\n");
-
         } else if (strcmp(cmd, "lock") == 0) {
-            scanf("%d", &byteNumber);
+            scanf("%hi", &offset);
             scanf("%s", type);
 
             if (strcmp(type, "r") == 0) {
-                setLock(fileDescriptor, byteNumber, F_RDLCK, locks);
+                result = setLock(fileDescriptor, offset, F_RDLCK);
             } else if (strcmp(type, "w") == 0) {
-                setLock(fileDescriptor, byteNumber, F_WRLCK, locks);
+                result = setLock(fileDescriptor, offset, F_WRLCK);
             } else if (strcmp(type, "u") == 0) {
-                setLock(fileDescriptor, byteNumber, F_UNLCK, locks);
+                result = setLock(fileDescriptor, offset, F_UNLCK);
             } else {
                 printf("Wrong option. Type help to see the list of possible actions.\n");
+                result = -2;
             }
+
+            if(result >= 0) {
+                printf("Lock set on %d. character.\n", result);
+            } else {
+                printf("Error while locking.\n");
+            };
+
         } else if (strcmp(cmd, "display") == 0) {
-            showLocked(fileDescriptor, locks);
+            showLocked(fileDescriptor);
             printf("\nEND\n");
         } else if (strcmp(cmd, "read") == 0) {
-            scanf("%d", &byteNumber);
-            readFromFile(fileDescriptor, byteNumber);
+            scanf("%hi", &offset);
+            readFromFile(fileDescriptor, offset);
         } else if (strcmp(cmd, "write") == 0) {
-            scanf("%d", &byteNumber);
-            scanf(" %c", &c);
-            writeToFile(fileDescriptor, byteNumber, c);
-        } else if (strcmp(cmd, "exit") == 0) {
-            return 0;
-        } else {
+            scanf("%hi", &offset);
+            scanf(" %s", &character);
+            writeToFile(fileDescriptor, offset, character);
+        } else if (strcmp(cmd, "exit") != 0) {
             printf("Wrong option. Type help to see the list of possible actions.\n");
         }
     }
 
     close(fileDescriptor);
-    free(locks);
     free(type);
     free(cmd);
 
