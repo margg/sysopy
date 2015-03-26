@@ -9,7 +9,7 @@ zad2_opendir: zad2.c
 zad2_ftw: zad2.c
 	$(CC) $(CFLAGS) zad2.c -o $@.o -D USEFTW
 
-run: all
+run:
 	./zad2_opendir.o
 	./zad2_ftw.o
 

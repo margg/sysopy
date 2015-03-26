@@ -9,13 +9,15 @@
 
 int permissionsValue;
 
-int printPath(const char *filePath, const struct stat *fileStat, int typeflag);
+int printFiles(const char *filePath, const struct stat *fileStat, int typeflag);
 
 int countPermissionsValue(char *permissions);
 
 void exitWrongArguments();
 
-void usingOpendir(int permissionsValue, DIR *dir);
+void printUsingOpendir(int permissionsValue, char *dirPath);
+
+char *validatePath(char *dirPath);
 
 int main(int argc, char **argv) {
 
@@ -23,9 +25,10 @@ int main(int argc, char **argv) {
         exitWrongArguments();
     }
 
-    char dirName[100];
+    char *dirPath = malloc(256 * sizeof(char));
 
-    realpath(argv[1], dirName);
+    realpath(argv[1], dirPath);
+    dirPath = validatePath(dirPath);
 
     char *permissions = argv[2];
     permissionsValue = countPermissionsValue(permissions);
@@ -34,28 +37,22 @@ int main(int argc, char **argv) {
         exitWrongArguments();
     }
 
-    DIR *dir;
-
-    if ((dir = opendir(dirName)) == NULL) {
-        printf("Error while opening directory %s.", dirName);
-        exit(1);
-    }
-
     printf("FileName \t\tSize \t\tLastModified \n\n");
 
 #ifndef USEFTW
-    usingOpendir(permissionsValue, dir);
+    printUsingOpendir(permissionsValue, dirPath);
 #else
-    ftw(dirName, printPath, 512);
+    ftw(dirPath, printFiles, 512);
 #endif
 
     printf("\n\n");
 
+    free(dirPath);
+
     return 0;
 }
 
-
-int printPath(const char *filePath, const struct stat *fileStat, int typeflag) {
+int printFiles(const char *filePath, const struct stat *fileStat, int typeflag) {
 
     if (!filePath || !fileStat) {
         return -1;
@@ -70,21 +67,44 @@ int printPath(const char *filePath, const struct stat *fileStat, int typeflag) {
 }
 
 
-void usingOpendir(int permissionsValue, DIR *dir) {
-    struct dirent *dp;
+void printUsingOpendir(int permissionsValue, char *dirPath) {
+
+    DIR *dir;
+
+    if ((dir = opendir(dirPath)) == NULL) {
+        printf("Error while opening directory %s.", dirPath);
+        exit(1);
+    }
+
+    struct dirent *dirEntry;
     struct stat fileStat;
+    int currentFilePermissions;
 
-    while ((dp = readdir(dir)) != NULL) {
+    while ((dirEntry = readdir(dir)) != NULL) {
 
+        char subDirPath[256];
 
+        if (dirEntry->d_type == DT_DIR) {
+            if (strcmp(dirEntry->d_name, "..") && strcmp(dirEntry->d_name, ".")) {
+                strcpy(subDirPath, dirPath);
+                strcat(subDirPath, dirEntry->d_name);
+                strcat(subDirPath, "/");
 
-        if (strcmp(dp->d_name, ".") != 0 && strcmp(dp->d_name, "..") != 0) {
+                printUsingOpendir(permissionsValue, subDirPath);
+            }
+        } else {
+            strcpy(subDirPath, dirPath);
+            strcat(subDirPath, dirEntry->d_name);
 
-            lstat(dp->d_name, &fileStat);
+            if (lstat(subDirPath, &fileStat) < 0) {
+                printf("Error while getting file stats.\n");
+                exit(1);
+            }
 
-            int currentFilePermissions = fileStat.st_mode & 511;
+            currentFilePermissions = fileStat.st_mode & 511;
+
             if (permissionsValue == currentFilePermissions) {
-                printf("%-20s %10d B \t%s", dp->d_name, (int) fileStat.st_size, ctime(&(fileStat.st_mtime)));
+                printf("%-20s %10d B \t%s", dirEntry->d_name, (int) fileStat.st_size, ctime(&(fileStat.st_mtime)));
             }
         }
     }
@@ -92,9 +112,21 @@ void usingOpendir(int permissionsValue, DIR *dir) {
     closedir(dir);
 }
 
+char *validatePath(char *dirPath) {
+    size_t length = strlen(dirPath);
+    if (dirPath[length - 1] != '/') {
+        char *newDirPath = malloc((length + 2) * sizeof(char));
+        strcpy(newDirPath, dirPath);
+        newDirPath[length] = '/';
+        newDirPath[length + 1] = '\0';
+        dirPath = newDirPath;
+    }
+    return dirPath;
+}
+
 void exitWrongArguments() {
-    printf("Wrong arguments. Usage:\n\n");
-    printf("\t <path/to/directory> <permissions>\n");
+    printf("Wrong arguments. Usage:\n");
+    printf("\t<program name> <path/to/directory> <permissions>\n");
     printf("where <permissions> should be of type: rwxrwxrwx, e.g. rw-r-xr--\n");
     exit(1);
 }
