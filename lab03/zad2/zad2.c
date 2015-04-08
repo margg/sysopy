@@ -85,8 +85,13 @@ void countFiles(char **argv) {
     while (processCount > 0) {
         int status = -1;
         wait(&status);
-        sumOfFiles += WEXITSTATUS(status);
-        processCount--;
+        if (WIFEXITED(status)) {
+            sumOfFiles += WEXITSTATUS(status);
+            processCount--;
+        } else {
+            printf("Error: child did not terminate normally.\n");
+            exit(-1);
+        }
     }
 
     if (showFileData) {
