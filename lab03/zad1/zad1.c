@@ -177,6 +177,7 @@ void endClock() {
             realChildren + realParent, userChildren + userParent, systemChildren + systemParent, userChildren + userParent + systemChildren + systemParent,
             realChildren, userChildren, systemChildren, userChildren + systemChildren,
             realParent, userParent, systemParent, userParent + systemParent);
+    fclose(fileDes);
 }
 
 

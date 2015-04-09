@@ -51,15 +51,17 @@ void countFiles(char **argv) {
     struct dirent *dirEntry;
     char dirPath[256];
     char filePath[256];
+    char **childArgs;
+    int pid;
 
     while ((dirEntry = readdir(dir))) {
         if (dirEntry->d_type == DT_DIR) {
             if (strcmp(".", dirEntry->d_name) != 0 && strcmp("..", dirEntry->d_name) != 0) {
                 sprintf(dirPath, "%s/%s", pathToBrowse, dirEntry->d_name);
                 processCount++;
-                int pid = fork();
+                pid = fork();
                 if (pid == 0) {
-                    char **childArgs = createChildArgList(argv[0], w, showFileData, dirPath);
+                    childArgs = createChildArgList(argv[0], w, showFileData, dirPath);
 
                     assert(execv(argv[0], childArgs) > -1);
                 }
@@ -81,9 +83,10 @@ void countFiles(char **argv) {
     assert(closedir(dir) > -1);
 
     int filesInDir = sumOfFiles;
+    int status;
 
     while (processCount > 0) {
-        int status = -1;
+        status = -1;
         wait(&status);
         if (WIFEXITED(status)) {
             sumOfFiles += WEXITSTATUS(status);
