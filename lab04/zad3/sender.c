@@ -50,12 +50,22 @@ int main(int argc, char **argv) {
 
     char *receiversFunctionName = "receiver.o";
 
-    if (signal(SIGUSR1, handleSigusr1) == SIG_ERR) {
-        printf("\nCannot catch SIGUSR1\n");
+    struct sigaction sigAction1;
+    sigAction1.sa_handler = handleSigusr1;
+    sigAction1.sa_flags = 0;
+    sigaddset(&(sigAction1.sa_mask), SIGRTMIN + 1);
+
+    struct sigaction sigAction2;
+    sigAction2.sa_handler = handleSigusr2;
+    sigAction2.sa_flags = 0;
+    sigaddset(&(sigAction2.sa_mask), SIGRTMIN);
+
+    if (sigaction(SIGRTMIN, &sigAction1, NULL) == -1) {
+        printf("\nCannot catch SIGRTMIN\n");
         exit(-1);
     }
-    if (signal(SIGUSR2, handleSigusr2) == SIG_ERR) {
-        printf("\nCannot catch SIGUSR2\n");
+    if (sigaction(SIGRTMIN + 1, &sigAction2, NULL) == -1) {
+        printf("\nCannot catch SIGRTMIN + 1\n");
         exit(-1);
     }
 
@@ -66,17 +76,17 @@ int main(int argc, char **argv) {
     }
 
     printf("Waiting for child to finish configuration...\n\n");
-    usleep(1500);
+    usleep(2000);
 
     int i;
     for (i = 0; i < SIGNALS_COUNT; i++) {
-        kill(pid, SIGUSR1);
-        printf("Sending %d. SIGUSR1 signal\n", i + 1);
+        kill(pid, SIGRTMIN);
+        printf("Sending %d. SIGRTMIN signal\n", i + 1);
     }
 
-    printf("Sending SIGUSR2 signal\n");
+    printf("Sending SIGRTMIN + 1 signal\n");
 
-    kill(pid, SIGUSR2);
+    kill(pid, SIGRTMIN + 1);
 
     while (1) { }
 

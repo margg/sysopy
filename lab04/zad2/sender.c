@@ -5,7 +5,7 @@
 #include <assert.h>
 #include <sys/wait.h>
 
-int SIGNALS_COUNT = 10;
+int SIGNALS_COUNT = 1000;
 
 int receivedSignalsCount = 0;
 
