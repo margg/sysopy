@@ -37,13 +37,13 @@ int SIGNALS_COUNT = 100000;
 
 int receivedSignalsCount = 0;
 
-void handleSigusr1(int signal) ;
+void handleSigusr1(int signal);
 
-void handleSigusr2(int signal) ;
+void handleSigusr2(int signal);
 
 int main(int argc, char **argv) {
 
-    if(argc > 1) {
+    if (argc > 1) {
         SIGNALS_COUNT = atoi(argv[1]);
     }
     printf("Signals count: %d\n\n", SIGNALS_COUNT);
@@ -78,37 +78,28 @@ int main(int argc, char **argv) {
 
     kill(pid, SIGUSR2);
 
-    while(1){}
+    while (1) { }
 
     return 0;
 }
 
 void handleSigusr1(int signal) {
 
-    if(signal == SIGUSR1) {
-        receivedSignalsCount++;
-        printf("Parent got signal! \t%d\n", receivedSignalsCount);
-    } else {
-        printf("Oh rly?");
-    }
+    receivedSignalsCount++;
+    printf("Parent got signal! \t%d\n", receivedSignalsCount);
 }
 
 void handleSigusr2(int signal) {
 
-    if(signal == SIGUSR2) {
-        int status = -1;
-        wait(&status);
-        if (WIFEXITED(status)) {
-            printf("Child terminated normally.\n\n");
-        } else {
-            printf("Error: child did not terminate normally.\n");
-            exit(-1);
-        }
-
-        printf("Parent process received: %d signals out of %d\n\n", receivedSignalsCount, SIGNALS_COUNT);
-        exit(0);
-
+    int status = -1;
+    wait(&status);
+    if (WIFEXITED(status)) {
+        printf("Child terminated normally.\n\n");
     } else {
-        printf("Oh rlly?");
+        printf("Error: child did not terminate normally.\n");
+        exit(-1);
     }
+
+    printf("Parent process received: %d signals out of %d\n\n", receivedSignalsCount, SIGNALS_COUNT);
+    exit(0);
 }
