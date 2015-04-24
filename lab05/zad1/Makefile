@@ -11,4 +11,6 @@ run:
 	./zad1.o
 
 clean:
-	rm -f *.a *.o *.so
+	rm -rf *.out
+	rm -rf *.o
+	rm -rf *~
