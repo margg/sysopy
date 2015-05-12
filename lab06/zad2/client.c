@@ -34,6 +34,7 @@ void createQueues();
 void exitClient();
 
 int main(int argc, char *argv[]) {
+
     if (argc < 2) {
         printf("Please provide the username.\n");
         exit(EXIT_FAILURE);
@@ -44,6 +45,7 @@ int main(int argc, char *argv[]) {
     signal(SIGTERM, sigHandler);
 
     username = argv[1];
+
     connectToServer();
 
     pid = fork();
@@ -76,7 +78,7 @@ void connectToServer() {
     status = mq_send(mainQueue, username, sizeof(char) * 128, 0);
 
     if (status == -1) {
-        perror("Logging to server failed. Try again later.");
+        perror("Logging to server failed.");
         exit(EXIT_FAILURE);
     }
 

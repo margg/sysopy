@@ -1,8 +1,9 @@
+lab06/zad1/zad1.c
+
 # Object files
 *.o
 *.ko
 *.obj
-
 
 # Libraries
 *.lib

@@ -14,5 +14,4 @@ server: server.o
 	rm $^
 
 clean:
-	rm -rf *.out
-	rm -rf *.o
+	rm -rf *.out *.o

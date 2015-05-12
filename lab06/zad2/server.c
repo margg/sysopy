@@ -107,7 +107,7 @@ void processMessages() {
             int receiverQueue = getQueue(msg.to);
 
             if(receiverQueue == -1) {
-                sprintf(msg.content, "No such client. Please try again.\n");
+                sprintf(msg.content, "No such client.\n");
                 receiverQueue = sendQueues[i]; // message is sent back to the sender
             } else {
                 sprintf(msg.to, "%s", clientId[i]);
@@ -116,7 +116,7 @@ void processMessages() {
             status = mq_send(receiverQueue, (char*)&msg, sizeof(msg), 0);
 
             if(status == -1) {
-                perror("Sending a message failed. Please try again.\n");
+                perror("Sending message failed.\n");
             }
         }
     }
