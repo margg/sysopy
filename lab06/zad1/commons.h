@@ -1,7 +1,8 @@
 #ifndef _COMMONS_H_
 #define _COMMONS_H_
 
-#define MAX_CLIENTS 32
+#define SERVER_LOCATION "."
+#define MAX_CLIENTS 30
 
 #define CLIENT 1
 #define SERVER 2

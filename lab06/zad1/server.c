@@ -84,12 +84,11 @@ void connectNewClient() {
 
         idData.mtype = SERVER;
 
-        //sending required data to new client
-        //sending id of his receiving channel
+        //sending id of client's receiving channel
         sprintf(idData.id, "%d", senderId);
         msgsnd(mainQueue, &idData, sizeof(idData.id), 0);
 
-        //sending id of his sender channel
+        //sending id of client's sender channel
         sprintf(idData.id, "%d", receiverId);
         msgsnd(mainQueue, &idData, sizeof(idData.id), 0);
 
