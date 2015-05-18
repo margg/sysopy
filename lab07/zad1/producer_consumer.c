@@ -20,6 +20,12 @@ int getNumber();
 
 int checkIfPrime(int number);
 
+
+/*
+ * This program does not remove the created shared memory.
+ *
+ * In order to remove it, run ./quitter.out
+ * */
 int main(int argc, char *argv[]) {
 
     if (argc < 2) {
