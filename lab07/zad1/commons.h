@@ -4,7 +4,7 @@
 
 #define BUFFER_SIZE 2048
 #define PATH_FOR_KEY "."
-#define NUM_OF_SEMAPHORES 5
+#define NUM_OF_SEMAPHORES 4
 #define MAX_NUM 255
 #define ITERATION_COUNT 10
 
