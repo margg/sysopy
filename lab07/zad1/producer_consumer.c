@@ -94,19 +94,19 @@ int main(int argc, char *argv[]) {
 //        printf("===> semaphores initialization\n");
         sharedBuffer->writeIndex = 0;
         sharedBuffer->readIndex = 0;
-        if (semctl(semId, 0, SETVAL, BUFFER_SIZE) == -1) {
+        if (semctl(semId, AVAILABLE_CELLS_SEM, SETVAL, BUFFER_SIZE) == -1) {
             perror("Error while creating semaphore 0\n");
             exit(1);
         }
-        if (semctl(semId, 1, SETVAL, 0) == -1) {
+        if (semctl(semId, SUBMITTED_JOBS_SEM, SETVAL, 0) == -1) {
             perror("Error while creating semaphore 1\n");
             exit(1);
         }
-        if (semctl(semId, 2, SETVAL, 1) == -1) {
+        if (semctl(semId, WRITE_INDEX_SEM, SETVAL, 1) == -1) {
             perror("Error while creating semaphore 2\n");
             exit(1);
         }
-        if (semctl(semId, 3, SETVAL, 1) == -1) {
+        if (semctl(semId, READ_INDEX_SEM, SETVAL, 1) == -1) {
             perror("Error while creating semaphore 3\n");
             exit(1);
         }
