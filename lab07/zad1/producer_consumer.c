@@ -115,7 +115,7 @@ int main(int argc, char *argv[]) {
 
     if (role == CONSUMER) {
         for (i = 0; i < ITERATION_COUNT;) {
-            usleep(700);
+            usleep(70000);
 
             down(semId, SUBMITTED_JOBS_SEM);
             down(semId, READ_INDEX_SEM);
@@ -153,7 +153,7 @@ int main(int argc, char *argv[]) {
     } else {    // PRODUCER
 
         for (i = 0; i < ITERATION_COUNT;) {
-            usleep(500);
+            usleep(50000);
 
             down(semId, AVAILABLE_CELLS_SEM);
             down(semId, WRITE_INDEX_SEM);

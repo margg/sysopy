@@ -1,19 +1,13 @@
 #include <stdio.h>
 #include <sys/stat.h>
-//#include <sys/types.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/mman.h>
-#include <time.h>
 #include <errno.h>
-#include <math.h>
 #include <semaphore.h>
-#include <sys/sem.h>
 #include "commons.h"
-
-
 
 
 void up(sem_t *semaphore);
@@ -130,7 +124,6 @@ int main(int argc, char *argv[]) {
         printf("Function mmap() failed: %s\n", strerror(errno));
         exit(EXIT_FAILURE);
     }
-
 
     if (shm_unlink(MEMORY_NAME) == -1) {
         fprintf(stderr, "Function shm_unlink() failed.\n");
