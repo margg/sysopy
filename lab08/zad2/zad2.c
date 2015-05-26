@@ -8,10 +8,6 @@
 
 #define TEXT_LENGTH 1020
 
-#define VERSION1
-//#define VERSION2
-//#define VERSION3
-
 struct record {
     int id;
     char text[TEXT_LENGTH];
@@ -37,6 +33,8 @@ void setCancellation(int mode);
 
 void sigHandler(int signo) ;
 
+void sigThreadHandler(int signo) ;
+
 int main(int argc, char const *argv[]) {
 
     if (argc != 5) {
@@ -50,14 +48,28 @@ int main(int argc, char const *argv[]) {
     char textToFind[strlen(argv[4])];
     strcpy(textToFind, argv[4]);
 
-    struct sigaction sigact;
+/*    struct sigaction sigact;
     sigact.sa_handler = sigHandler;
     sigact.sa_flags = 0;
     if(sigaction(SIGUSR1, &sigact, NULL) || sigaction(SIGTERM, &sigact, NULL)) {
         perror("Error while setting up singal handling.\n");
         exit(EXIT_FAILURE);
+    }*/
+
+/*    sigset_t set;
+
+    if(sigemptyset(&set) || sigaddset(&set, SIGUSR1)
+       || sigaddset(&set, SIGTERM)
+       || sigaddset(&set, SIGKILL)
+       || sigaddset(&set, SIGSTOP)) {
+        perror("Error while creating sigset.\n");
+        exit(EXIT_FAILURE);
     }
 
+    if(pthread_sigmask(SIG_SETMASK, &set, NULL)) {
+        perror("Error while setting sigmask.\n");
+        exit(EXIT_FAILURE);
+    }*/
 
     if ((file = open(fileName, O_RDONLY)) == -1) {
         perror("Error while opening the file.\n");
@@ -76,14 +88,12 @@ int main(int argc, char const *argv[]) {
 
     threadsCreationFinished = 1;
 
-
-
 //    pthread_kill(threads[0], SIGUSR1);
 //    pthread_kill(threads[0], SIGTERM);
 //    pthread_kill(threads[0], SIGKILL);
 //    pthread_kill(threads[0], SIGSTOP);
 
-    pause();
+    sleep(20);
 
 
     for (i = 0; i < threadsCount; ++i) {
@@ -125,13 +135,28 @@ void *threadFind(void *textToFind) {
     }
 #endif
 
-    struct sigaction sigact;
-    sigact.sa_handler = sigThreadHandler;
-    sigact.sa_flags = 0;
-    if(sigaction(SIGUSR1, &sigact, NULL) || sigaction(SIGTERM, &sigact, NULL)) {
-        perror("Error while setting up singal handling.\n");
+/*    sigset_t set;
+
+    if(sigemptyset(&set) || sigaddset(&set, SIGUSR1)
+       || sigaddset(&set, SIGTERM)
+       || sigaddset(&set, SIGKILL)
+       || sigaddset(&set, SIGSTOP)) {
+        perror("Error while creating sigset.\n");
         exit(EXIT_FAILURE);
     }
+
+    if(pthread_sigmask(SIG_SETMASK, &set, NULL)) {
+        perror("Error while setting sigmask.\n");
+        exit(EXIT_FAILURE);
+    }*/
+
+/*    struct sigaction sigact;
+    sigact.sa_handler = sigThreadHandler;
+    sigact.sa_flags = 0;
+    if(sigaction(SIGUSR1, &sigact, NULL) ){ // || sigaction(SIGTERM, &sigact, NULL)) {
+        perror("Error while setting up singal handling.\n");
+        exit(EXIT_FAILURE);
+    }*/
 
     while (!threadsCreationFinished) { }
 
@@ -140,6 +165,8 @@ void *threadFind(void *textToFind) {
     while (recordsRead > 0) {
 
         readingIteration++;
+
+//            int tmp = 1/0;
 
 #ifdef VERSION2
         pthread_testcancel();
@@ -162,13 +189,13 @@ void *threadFind(void *textToFind) {
                 int j;
                 for (j = 0; j < threadsCount; j++) {
                     if (!pthread_equal(threads[j], pthread_self())) {
-                        pthread_cancel(threads[j]);
+//                        pthread_cancel(threads[j]);
                     }
                 }
                 return 0;
 #endif
             }
-            usleep(20);   // for visible performance only
+            sleep(20);
         }
 
 #ifdef VERSION2
