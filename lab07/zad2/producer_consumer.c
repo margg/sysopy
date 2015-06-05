@@ -246,13 +246,13 @@ int getNumber() {
 void up(sem_t *semaphore) {
     if (sem_post(semaphore) == -1) {
         perror("Error while moving semaphore up.\n");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 }
 
 void down(sem_t *semaphore) {
     if (sem_wait(semaphore) == -1) {
         printf("Error while moving semaphore down.\n");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 }
