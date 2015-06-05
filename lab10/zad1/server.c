@@ -99,7 +99,7 @@ int createUnixSocket(char *socketFilePath) {
     unlink(socketFilePath);
 
     if ((socketFd = socket(PF_UNIX, SOCK_DGRAM, 0)) == -1) {
-        perror("Could not create socket!\n");
+        perror("Error : Could not create socket. ");
         exit(EXIT_FAILURE);
     }
 
@@ -107,7 +107,7 @@ int createUnixSocket(char *socketFilePath) {
     strcpy(socketAddr.sun_path, socketFilePath);
 
     if (bind(socketFd, (struct sockaddr *) &socketAddr, (socklen_t) sizeof(socketAddr)) < 0) {
-        perror("Connection failure.\n");
+        perror("Error : Could not bind the socket. ");
         exit(EXIT_FAILURE);
     }
 
@@ -121,7 +121,7 @@ int createInetSocket(int port) {
     int socketFd;
 
     if ((socketFd = socket(PF_INET, SOCK_DGRAM, 0)) == -1) {
-        printf("Could not create socket!\n");
+        perror("Error : Could not create socket. ");
         exit(EXIT_FAILURE);
     }
 
@@ -130,7 +130,7 @@ int createInetSocket(int port) {
     socketAddr.sin_addr.s_addr = htonl(INADDR_ANY);
 
     if (bind(socketFd, (struct sockaddr *) &socketAddr, sizeof(socketAddr)) < 0) {
-        printf("Connection failure.\n");
+        perror("Error : Could not bind the socket. ");
         exit(EXIT_FAILURE);
     }
 
@@ -168,7 +168,7 @@ void serveRequest(int requestedSocket) {
             if (users[req.id] != NULL) {
                 logoutUser(req.id);
             } else {
-                printf("Error : User not connected \n");
+                fprintf(stderr, "Error : User not connected. ");
             }
             break;
         case REQ_MESSAGE:
@@ -184,7 +184,7 @@ void serveRequest(int requestedSocket) {
                     clientSocket = *(users[i]->clientSocket);
                     sockLength = (socklen_t) users[i]->size;
                     if (sendto(requestedSocket, &msg, sizeof(Message), 0, &clientSocket, sockLength) < 0) {
-                        printf("Could not send message to %s (ID: %d).\n", msg.username, users[i]->id);
+                        fprintf(stderr, "Could not send message to %s (ID: %d).\n", msg.username, users[i]->id);
                     } else {
                         printf("Message sent to: %s (%d)\n", users[i]->username, users[i]->id);
                     }
@@ -193,7 +193,7 @@ void serveRequest(int requestedSocket) {
             updateUserActivity(req.id);
             break;
         default:
-            printf("Unknown request received.\n");
+            fprintf(stderr, "Unknown request received.\n");
             break;
     }
 
@@ -212,13 +212,13 @@ void updateUserActivity(int id) {
     if(users[id] != NULL) {
         users[id]->lastActivityTime = time(NULL);
     } else {
-        perror("Updating null user!\n");
+        fprintf(stderr, "Updating null user!\n");
     }
 }
 
 int registerNewClient(int requestedSocket, Request *req, struct sockaddr *clientSocket, size_t sockLength) {
     if ((userIndex = getAvailableIndex()) == -1) {
-        perror("Error : Server busy. Please try again later. ");
+        fprintf(stderr, "Error : Server busy. Please try again later. ");
         return -1;
     }
 
@@ -269,9 +269,7 @@ void destroyServer(int arg) {
         }
     }
     unlink(socketFilePath);
-
     printf("Server destroyed.\n");
-
     exit(EXIT_SUCCESS);
 }
 
