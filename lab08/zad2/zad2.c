@@ -31,9 +31,9 @@ void *threadFind(void *textToFind);
 
 void setCancellation(int mode);
 
-void sigHandler(int signo) ;
+void sigHandler(int signo);
 
-void sigThreadHandler(int signo) ;
+void sigThreadHandler(int signo);
 
 int main(int argc, char const *argv[]) {
 
@@ -110,11 +110,11 @@ int main(int argc, char const *argv[]) {
 
 
 void sigHandler(int signo) {
-    printf("Signal: %d, PID: %u, TID: %lu\n", (unsigned int)signo, getpid(), pthread_self());
+    printf("Signal: %d, PID: %u, TID: %lu\n", signo, getpid(), pthread_self());
 }
 
 void sigThreadHandler(int signo) {
-    printf("\t Thread got signal: %d, PID: %u, TID: %lu\n", (unsigned int)signo, getpid(), pthread_self());
+    printf("\t Thread got signal: %d, PID: %u, TID: %lu\n", signo, getpid(), pthread_self());
 }
 
 
@@ -153,7 +153,7 @@ void *threadFind(void *textToFind) {
 /*    struct sigaction sigact;
     sigact.sa_handler = sigThreadHandler;
     sigact.sa_flags = 0;
-    if(sigaction(SIGUSR1, &sigact, NULL) ){ // || sigaction(SIGTERM, &sigact, NULL)) {
+    if(sigaction(SIGUSR1, &sigact, NULL) || sigaction(SIGTERM, &sigact, NULL)) {
         perror("Error while setting up singal handling.\n");
         exit(EXIT_FAILURE);
     }*/
@@ -179,12 +179,13 @@ void *threadFind(void *textToFind) {
 
         int i;
         for (i = 0; i < recordsRead; i++) {
-            printf("TID: %lu, RecordID: %d, \treading iteration: %d\n", (unsigned long) pthread_self(), records[i].id, readingIteration);
+            printf("TID: %lu, RecordID: %d, \treading iteration: %d\n", pthread_self(), records[i].id,
+                   readingIteration);
 
             char *substring = strstr(records[i].text, textToFind);
 
             if (substring) {
-                printf("\tTID: %lu, text found in record: %d\n", (unsigned long) pthread_self(), records[i].id);
+                printf("\tTID: %lu, text found in record: %d\n", pthread_self(), records[i].id);
 #ifndef VERSION3
                 int j;
                 for (j = 0; j < threadsCount; j++) {
