@@ -50,19 +50,36 @@ void sendMessage(Request *req);
 
 void receiveMessage(Message *message);
 
+void printUsage(char *progName);
+
 int main(int argc, char *argv[]) {
 
+    if (argc < 4) {
+        printUsage(argv[0]);
+        exit(EXIT_FAILURE);
+    }
 
-    strcpy(username, "marg333");
-    int serverType = AF_INET;
+    strcpy(username, argv[1]);
+    char *serverType = argv[2];
     char *IPaddr = DEFAULT_ADDRESS;
     int port = DEFAULT_PORT;
     char *localServerPath = LOCAL_SERVER_PATH;
+    int clientMode = MODE_UNIX;
+
+    if(strcmp(serverType, "U") == 0) {
+        localServerPath = argv[3];
+        clientMode = MODE_UNIX;
+    } else if(strcmp(serverType, "N") == 0) {
+        IPaddr = argv[3];
+        port = atoi(argv[4]);
+        clientMode = MODE_INET;
+    } else {
+        printUsage(argv[0]);
+        exit(EXIT_FAILURE);
+    }
 
     signal(SIGINT, destroyClient);
     signal(SIGTERM, destroyClient);
-
-    int clientMode = MODE_UNIX;
 
     if (clientMode == MODE_INET) {
         socketFd = getInetSocket(IPaddr, port);
@@ -75,6 +92,12 @@ int main(int argc, char *argv[]) {
 
     close(socketFd);
     return 0;
+}
+
+void printUsage(char *progName) {
+    printf("\nInvalid arguments.\n\nUsage:\n");
+    printf("-> for local UNIX connection:\n \t%s\t<username> U <local server socket path>\n", progName);
+    printf("-> for remote INET connection:\n \t%s\t<username> N <IP> <port>\n\n", progName);
 }
 
 void clientRun(int mode) {

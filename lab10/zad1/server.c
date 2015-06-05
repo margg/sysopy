@@ -16,7 +16,7 @@ int unixSocket = 0;
 int inetSocket = 0;
 int userIndex = 0;
 User *users[USERS_MAX];
-char *socketFilePath;
+char socketFilePath[PATH_MAX_LEN];
 
 
 void destroyServer(int arg);
@@ -43,9 +43,14 @@ void updateUserActivity(int id);
 
 int main(int argc, char **argv) {
 
-    int port = DEFAULT_PORT;
-    socketFilePath = malloc(sizeof(char) * HOST_NAME_MAX_LEN);
-    socketFilePath = strcpy(socketFilePath, LOCAL_SERVER_PATH);
+    if (argc < 3) {
+        printf("\nInvalid arguments.\n\nUsage:\n");
+        printf("\t%s \t<port> <local server socket path>", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    int port = atoi(argv[1]);
+    sprintf(socketFilePath, "%s", argv[2]);
 
     signal(SIGINT, destroyServer);
     signal(SIGTERM, destroyServer);
@@ -151,7 +156,10 @@ void serveRequest(int requestedSocket) {
         case REQ_REGISTER:
             if (req.id == -1) {
                 printf("Received register new client request.\n");
-                registerNewClient(requestedSocket, &req, &clientSocket, sockLength);
+                if(registerNewClient(requestedSocket, &req, &clientSocket, sockLength) == -1) {
+                    printf("Server busy. Skipping registration of new client.");
+                    break;
+                }
             } else {
                 printf("Received activity request from %s.\n", req.username);
                 updateUserActivity(req.id);
@@ -196,6 +204,7 @@ void serveRequest(int requestedSocket) {
 void removeInactiveClients() {
     for (int i = 0; i < USERS_MAX; i++) {
         if (users[i] != NULL && (time(NULL) - users[i]->lastActivityTime) > SERVER_TIMEOUT) {
+            printf("Logging out user: %s (%d)\n", users[i]->username, users[i]->id);
             logoutUser(i);
         }
     }
@@ -211,7 +220,7 @@ void updateUserActivity(int id) {
 
 int registerNewClient(int requestedSocket, Request *req, struct sockaddr *clientSocket, size_t sockLength) {
     if ((userIndex = getAvailableIndex()) == -1) {
-        printf("Error : Server busy. Please try again later. ");
+        perror("Error : Server busy. Please try again later. ");
         return -1;
     }
 
@@ -225,7 +234,7 @@ int registerNewClient(int requestedSocket, Request *req, struct sockaddr *client
 
     updateUserActivity(users[userIndex]->id);
 
-    if (sendto(requestedSocket, &userIndex, sizeof(userIndex), 0, clientSocket, req->size) == -1) {
+    if (sendto(requestedSocket, &userIndex, sizeof(userIndex), 0, clientSocket, (socklen_t) req->size) == -1) {
         perror("Error : Could not send ID to new user.\n");
     }
 
@@ -247,10 +256,6 @@ int getAvailableIndex() {
         }
     }
     return -1;
-}
-
-int isMessageAuthor(int i, int requestUserId) {
-    return users[i]->id == requestUserId;
 }
 
 void destroyServer(int arg) {
