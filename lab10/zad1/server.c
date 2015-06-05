@@ -27,8 +27,6 @@ int createInetSocket(int port);
 
 void serveRequest(int requestedSocket);
 
-int isMessageAuthor(int i, int requestUserId);
-
 int getAvailableIndex();
 
 void removeInactiveClients();
@@ -45,7 +43,7 @@ int main(int argc, char **argv) {
 
     if (argc < 3) {
         printf("\nInvalid arguments.\n\nUsage:\n");
-        printf("\t%s \t<port> <local server socket path>", argv[0]);
+        printf("\t%s \t<port> <local server socket path>\n\n", argv[0]);
         exit(EXIT_FAILURE);
     }
 
@@ -264,12 +262,13 @@ void destroyServer(int arg) {
     close(inetSocket);
     for (i = 0; i < USERS_MAX; ++i) {
         if (users[i] != NULL) {
-            free(users[i]->clientSocket);
+            if(users[i]->clientSocket) {
+                free(users[i]->clientSocket);
+            }
             free(users[i]);
         }
     }
     unlink(socketFilePath);
-    free(socketFilePath);
 
     printf("Server destroyed.\n");
 

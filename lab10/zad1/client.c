@@ -152,8 +152,8 @@ void sendMessage(Request *req) {
     getMessage(msg);
 
     if (strcmp(msg, "logout\n") == 0) {
-        (*req).type = REQ_LOGOUT;
-        sprintf((*req).msg, "");
+        req->type = REQ_LOGOUT;
+        sprintf(req->msg, " ");
 
         sendRequest(req);
 
@@ -162,9 +162,11 @@ void sendMessage(Request *req) {
         exitClient();
     }
 
-    req->type = REQ_MESSAGE;
-    sprintf(req->msg, "%s", msg);
-    sendRequest(req);
+    if(strcmp(msg, "\n") != 0) {
+        req->type = REQ_MESSAGE;
+        sprintf(req->msg, "%s", msg);
+        sendRequest(req);
+    }
 }
 
 void sendKeepAliveMessage(Request *req) {
@@ -273,7 +275,16 @@ void loginUser(int mode, char *username) {
 }
 
 void destroyClient(int arg) {
-    printf("Client destroyed.\n");
+    Request req;
+    req.id = id;
+    sprintf(req.username, "%s", username);
+    req.size = sizeof(clientSocketUnix);
+    req.type = REQ_LOGOUT;
+    sprintf(req.msg, " ");
+
+    sendRequest(&req);
+
+    printf("Logout successfull. See you!\n\n");
     shutdown(socketFd, SHUT_RDWR);
     exitClient();
 }
