@@ -210,7 +210,7 @@ int getUnixSocket(char *localServerPath) {
     unlink(path);
 
     if ((socketFd = socket(PF_UNIX, SOCK_DGRAM, 0)) == -1) {
-        perror("Could not create socket!\n");
+        perror("Error : Could not create socket. ");
         exit(EXIT_FAILURE);
     }
 
@@ -218,7 +218,7 @@ int getUnixSocket(char *localServerPath) {
     strncpy(clientSocketUnix.sun_path, path, strlen(path));
 
     if (bind(socketFd, (struct sockaddr *) &clientSocketUnix, sizeof(clientSocketUnix)) < 0) {
-        printf("Connection failure.\n");
+        perror("Error : Connection failure. ");
         exit(EXIT_FAILURE);
     }
 
@@ -234,14 +234,14 @@ int getInetSocket(char *IPaddr, int port) {
     int socketFd;
 
     if ((socketFd = socket(PF_INET, SOCK_DGRAM, 0)) == -1) {
-        printf("Could not create socket!\n");
+        perror("Error : Could not create socket. ");
         exit(EXIT_FAILURE);
     }
 
     serverSocketInet.sin_family = AF_INET;
     serverSocketInet.sin_port = htons(port);
     if (inet_pton(AF_INET, IPaddr, &serverSocketInet.sin_addr) < 0) {
-        printf("Connection failure.\n");
+        perror("Error : Connection failure. ");
         exitClient();
     }
 
