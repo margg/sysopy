@@ -124,7 +124,7 @@ void clientRun(int mode) {
 }
 
 void receiveMessage(Message *message) {
-    if (read(socketFd, message, sizeof(Message)) < 0) {
+    if (recv(socketFd, message, sizeof(Message), 0) < 0) {
         perror("Error : Could not receive message from server. ");
         exitClient();
     }
